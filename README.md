@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<EDUSINOPAYE>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Mixed Americano (Padel Style)</title>
+    <title>Mixed Americano (Badminton Style)</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background: #f4f7fc; padding: 15px; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
@@ -152,7 +152,7 @@
 <body>
 <div class="container" id="app">
     <h1>
-        <span>🏸 Mixed Americano (Padel)</span>
+        <span>🏸 Mixed Americano (Badminton)</span>
         <button class="dark-toggle" onclick="toggleDarkMode()" title="Mode Gelap">🌙</button>
     </h1>
 
@@ -672,7 +672,7 @@
     loadState();
     loadDarkMode();
     render();
-    console.log('🏸 Mixed Americano (Padel Style) siap!');
+    console.log('🏸 Mixed Americano (Badminton Style) siap!');
 </script>
 </body>
 </html>
