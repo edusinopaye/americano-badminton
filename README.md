@@ -501,7 +501,7 @@
 
         <!-- ===== HEADER ===== -->
         <h1>
-            <span>🏸 Turnamen Gando (Americano)</span>
+            <span>🏸 Turnamen Ganda (Americano)</span>
             <button class="dark-toggle" onclick="toggleDarkMode()" title="Mode Gelap">🌙</button>
         </h1>
 
