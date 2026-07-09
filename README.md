@@ -1,9 +1,9 @@
-<EDUSINOPAYE>
+<!EDUSINOPAYE>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Mixed Americano (Badminton Style)</title>
+    <title>Americano (Badminton)</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background: #f4f7fc; padding: 15px; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
@@ -18,18 +18,12 @@
 
         .flex-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .gap-8 { gap: 8px; }
-        .w-full { width: 100%; }
-
-        input[type="text"], input[type="number"], select {
+        input[type="text"], input[type="number"] {
             padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;
-            background: white; color: #1a202c; transition: 0.2s;
+            flex: 1 1 180px; transition: 0.2s; background: white; color: #1a202c;
         }
-        input[type="text"] { flex: 1 1 150px; }
-        input[type="number"] { width: 70px; }
-        select { flex: 0 1 120px; }
-        body.dark input, body.dark select { background: #4a5568; border-color: #4a5568; color: #f7fafc; }
-        input:focus, select:focus { border-color: #3182ce; outline: none; box-shadow: 0 0 0 3px rgba(49,130,206,0.2); }
+        body.dark input { background: #4a5568; border-color: #4a5568; color: #f7fafc; }
+        input:focus { border-color: #3182ce; outline: none; box-shadow: 0 0 0 3px rgba(49,130,206,0.2); }
 
         .btn {
             padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px;
@@ -64,8 +58,6 @@
             background: none; border: none; font-size: 18px; padding: 0 4px; line-height: 1;
         }
         body.dark .player-tag .remove { color: #fc8181; }
-        .gender-m { color: #2b6cb0; font-weight: bold; }
-        .gender-f { color: #d53f8c; font-weight: bold; }
 
         .card { background: #f7fafc; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
         body.dark .card { background: #3a4a5f; }
@@ -144,34 +136,28 @@
             .btn { padding: 10px 16px; font-size: 15px; width: 100%; justify-content: center; }
             .flex-row .btn { width: auto; flex: 1; }
             .flex-between { flex-direction: column; align-items: stretch; }
-            .flex-row input[type="text"] { flex: 1 1 100%; }
-            select { flex: 1 1 100%; }
         }
     </style>
 </head>
 <body>
 <div class="container" id="app">
     <h1>
-        <span>🏸 Mixed Americano (Badminton)</span>
+        <span>🏸 Americano (Badminton)</span>
         <button class="dark-toggle" onclick="toggleDarkMode()" title="Mode Gelap">🌙</button>
     </h1>
 
     <div class="card card-blue">
         <div class="flex-row">
             <input type="text" id="playerNameInput" placeholder="Nama pemain" onkeypress="if(event.keyCode==13) addPlayer()">
-            <select id="genderSelect">
-                <option value="M">👨 Pria</option>
-                <option value="F">👩 Wanita</option>
-            </select>
             <button class="btn btn-primary" onclick="addPlayer()">➕ Tambah</button>
             <button class="btn btn-warning" onclick="clearPlayers()">🗑️ Reset</button>
         </div>
         <div class="player-list" id="playerListContainer"></div>
         <div class="flex-between">
             <div style="font-size:14px; display:flex; gap:15px; flex-wrap:wrap;">
-                <span>👨 <strong id="maleCount">0</strong> | 👩 <strong id="femaleCount">0</strong></span>
-                <span id="genderParity"></span>
-                <span class="info-badge">🔹 Mixed: setiap Pria & Wanita berpasangan sekali</span>
+                <span>Total: <strong id="playerCount">0</strong> pemain</span>
+                <span id="playerParity"></span>
+                <span class="info-badge">🔹 Setiap pasangan bertemu sekali</span>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn btn-success btn-sm" onclick="generateSchedule()">📋 Buat Jadwal</button>
@@ -205,10 +191,10 @@
     // ================================================================
     //  STATE
     // ================================================================
-    let state = { players: [], schedule: [] }; // players: [{name, gender}]
+    let state = { players: [], schedule: [] };
     let historyData = [];
-    const STORAGE_KEY = 'mixed_americano_pro';
-    const HISTORY_KEY = 'mixed_history_pro';
+    const STORAGE_KEY = 'americano_all_players';
+    const HISTORY_KEY = 'americano_history_all';
 
     // ================================================================
     //  PERSISTENCE
@@ -244,22 +230,14 @@
 
     function renderPlayers() {
         const c = document.getElementById('playerListContainer');
-        const maleCount = document.getElementById('maleCount');
-        const femaleCount = document.getElementById('femaleCount');
-        const parity = document.getElementById('genderParity');
-
-        const males = state.players.filter(p => p.gender === 'M');
-        const females = state.players.filter(p => p.gender === 'F');
-        maleCount.textContent = males.length;
-        femaleCount.textContent = females.length;
-
+        const count = document.getElementById('playerCount');
+        const parity = document.getElementById('playerParity');
         if (state.players.length === 0) {
             c.innerHTML = '<span class="empty-state">Belum ada pemain.</span>';
         } else {
-            c.innerHTML = state.players.map((p, idx) =>
+            c.innerHTML = state.players.map((name, idx) =>
                 `<div class="player-tag">
-                    <span class="${p.gender === 'M' ? 'gender-m' : 'gender-f'}">${p.gender === 'M' ? '👨' : '👩'}</span>
-                    ${p.name}
+                    ${name}
                     <button class="remove" data-index="${idx}">✕</button>
                 </div>`
             ).join('');
@@ -273,17 +251,17 @@
                 });
             });
         }
-
-        if (males.length === females.length && males.length >= 2) {
-            parity.innerHTML = '<span style="color:#38a169; font-weight:600;">✅ Seimbang (siap)</span>';
-        } else if (males.length === females.length && males.length < 2) {
-            parity.innerHTML = '<span style="color:#dd6b20; font-weight:600;">⚠️ Minimal 2 pria & 2 wanita</span>';
+        count.textContent = state.players.length;
+        if (state.players.length < 4) {
+            parity.innerHTML = '<span style="color:#dd6b20; font-weight:600;">⚠️ Minimal 4 pemain</span>';
+        } else if (state.players.length % 2 !== 0) {
+            parity.innerHTML = '<span style="color:#dd6b20; font-weight:600;">⚡ Ganjil, akan ada istirahat</span>';
         } else {
-            parity.innerHTML = '<span style="color:#e53e3e; font-weight:600;">❌ Jumlah pria & wanita harus sama</span>';
+            parity.innerHTML = '<span style="color:#38a169; font-weight:600;">✅ Genap</span>';
         }
     }
 
-    // ----- SCHEDULE (Mixed Americano) -----
+    // ----- SCHEDULE -----
     function renderSchedule() {
         const container = document.getElementById('scheduleContainer');
         if (!state.schedule || state.schedule.length === 0) {
@@ -302,7 +280,6 @@
                     const scoreB = match.scoreB !== null ? match.scoreB : '';
                     const completedClass = isPlayed ? 'completed' : '';
                     const wave = match.wave || (mIdx + 1);
-                    // Format tim: pria+wanita
                     const teamA = match.teamA.join(' & ');
                     const teamB = match.teamB.join(' & ');
                     html += `
@@ -326,8 +303,7 @@
                 html += `<div class="empty-state">Tidak ada pertandingan di putaran ini.</div>`;
             }
             if (round.rest && round.rest.length > 0) {
-                const restNames = round.rest.map(p => p.name).join(', ');
-                html += `<div class="rest-info">🔄 Istirahat: ${restNames}</div>`;
+                html += `<div class="rest-info">🔄 Istirahat: ${round.rest.join(', ')}</div>`;
             }
             html += `</div>`;
         });
@@ -373,13 +349,11 @@
             container.innerHTML = '<div class="empty-state">Belum ada data.</div>';
             return;
         }
-        let html = `<table class="ranking"><thead><tr><th>#</th><th>Pemain</th><th>Gender</th><th>Main</th><th>Menang</th><th>Kalah</th><th>Selisih</th><th>Total Poin</th></tr></thead><tbody>`;
+        let html = `<table class="ranking"><thead><tr><th>#</th><th>Pemain</th><th>Main</th><th>Menang</th><th>Kalah</th><th>Selisih</th><th>Total Poin</th></tr></thead><tbody>`;
         stats.forEach((p, idx) => {
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
-            const genderIcon = p.gender === 'M' ? '👨' : '👩';
             html += `<tr><td><span class="rank-num">${idx+1}</span> ${medal}</td>
                      <td><strong>${p.name}</strong></td>
-                     <td>${genderIcon}</td>
                      <td>${p.played}</td>
                      <td style="color:#38a169;">${p.won}</td>
                      <td style="color:#e53e3e;">${p.lost}</td>
@@ -415,13 +389,12 @@
     // ================================================================
     function addPlayer() {
         const input = document.getElementById('playerNameInput');
-        const gender = document.getElementById('genderSelect').value;
         const name = input.value.trim();
         if (!name) { alert('Masukkan nama.'); return; }
-        if (state.players.some(p => p.name === name)) { alert('Nama sudah ada.'); return; }
+        if (state.players.includes(name)) { alert('Nama sudah ada.'); return; }
         if (state.schedule.length > 0 && !confirm('Tambah pemain akan reset jadwal. Lanjutkan?')) return;
         state.schedule = [];
-        state.players.push({ name, gender });
+        state.players.push(name);
         input.value = '';
         input.focus();
         render();
@@ -429,75 +402,89 @@
 
     function clearPlayers() {
         if (state.players.length === 0) return;
-        if (!confirm('Hapus semua pemain?')) return;
+        if (!confirm('Hapus Badminton?')) return;
         state.players = [];
         state.schedule = [];
         render();
     }
 
     // ================================================================
-    //  LOGIC : SCHEDULE (MIXED AMERICANO)
+    //  LOGIC : SCHEDULE (AMERICANO - SETIAP PASANGAN UNIK SEKALI)
     // ================================================================
     function generateSchedule() {
-        const males = state.players.filter(p => p.gender === 'M');
-        const females = state.players.filter(p => p.gender === 'F');
-        if (males.length !== females.length || males.length < 2) {
-            alert('Jumlah pria dan wanita harus sama, minimal 2 masing-masing.');
-            return;
+        const n = state.players.length;
+        if (n < 4) { alert('Minimal 4 pemain.'); return; }
+
+        // Buat semua pasangan unik (C(n,2))
+        const pairs = [];
+        for (let i = 0; i < n; i++) {
+            for (let j = i+1; j < n; j++) {
+                pairs.push([state.players[i], state.players[j]]);
+            }
         }
 
-        const n = males.length; // = females.length
-        const totalRounds = n;   // setiap pria akan bertemu setiap wanita sekali
-        const newSchedule = [];
+        // Acak urutan pasangan agar jadwal lebih variatif
+        for (let i = pairs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+        }
 
-        // Algoritma rotasi untuk pasangan pria-wanita (circle method)
-        let maleArr = [...males];
-        let femaleArr = [...females];
+        // Alokasikan pasangan ke dalam putaran
+        // Setiap putaran, kita ambil pasangan yang tidak memiliki pemain yang sama,
+        // lalu bentuk match dari 2 pasangan (4 pemain).
+        const rounds = [];
+        let usedPairs = new Array(pairs.length).fill(false);
+        let roundNumber = 0;
 
-        for (let round = 0; round < totalRounds; round++) {
-            // Buat pasangan (pria ke-i dengan wanita ke-i)
-            const pairs = [];
-            for (let i = 0; i < n; i++) {
-                pairs.push([maleArr[i], femaleArr[i]]);
+        while (usedPairs.some(v => !v)) {
+            roundNumber++;
+            const roundMatches = [];
+            const playersInRound = new Set();
+            const usedInRound = [];
+
+            // Coba ambil pasangan satu per satu
+            for (let i = 0; i < pairs.length; i++) {
+                if (usedPairs[i]) continue;
+                const [p1, p2] = pairs[i];
+                if (playersInRound.has(p1) || playersInRound.has(p2)) continue;
+                // Cari pasangan kedua yang kompatibel
+                for (let j = i+1; j < pairs.length; j++) {
+                    if (usedPairs[j]) continue;
+                    const [q1, q2] = pairs[j];
+                    if (playersInRound.has(q1) || playersInRound.has(q2)) continue;
+                    // Cek tidak ada overlap antara dua pasangan (otomatis karena kita cek set)
+                    // Bentuk match
+                    roundMatches.push({
+                        teamA: [p1, p2],
+                        teamB: [q1, q2],
+                        scoreA: null,
+                        scoreB: null,
+                        id: `r${roundNumber-1}m${roundMatches.length}`,
+                        wave: roundMatches.length + 1
+                    });
+                    usedPairs[i] = true;
+                    usedPairs[j] = true;
+                    playersInRound.add(p1);
+                    playersInRound.add(p2);
+                    playersInRound.add(q1);
+                    playersInRound.add(q2);
+                    usedInRound.push(i, j);
+                    break;
+                }
             }
 
-            // Sekarang buat match dari pasangan (2 pasangan per match)
-            const matches = [];
-            const matchCount = Math.floor(pairs.length / 2);
-            for (let j = 0; j < matchCount * 2; j += 2) {
-                const teamA = pairs[j].map(p => p.name);
-                const teamB = pairs[j+1].map(p => p.name);
-                matches.push({
-                    teamA: teamA,
-                    teamB: teamB,
-                    scoreA: null,
-                    scoreB: null,
-                    id: `r${round}m${Math.floor(j/2)}`,
-                    wave: Math.floor(j/2) + 1
-                });
-            }
+            // Kumpulkan pemain yang tidak bermain di putaran ini (istirahat)
+            const allPlayers = new Set(state.players);
+            const rest = [...allPlayers].filter(p => !playersInRound.has(p));
 
-            // Sisa pasangan (ganjil) diistirahatkan
-            const restPlayers = [];
-            if (pairs.length % 2 !== 0) {
-                const lastPair = pairs[pairs.length - 1];
-                restPlayers.push(...lastPair);
-            }
-
-            newSchedule.push({
-                round: round + 1,
-                matches: matches,
-                rest: restPlayers
+            rounds.push({
+                round: roundNumber,
+                matches: roundMatches,
+                rest: rest
             });
-
-            // Rotasi untuk round berikutnya (pria tetap, wanita digeser)
-            // Dalam Mixed Americano, biasanya pria tetap, wanita dirotasi
-            // atau sebaliknya. Kita gunakan pria tetap, wanita geser.
-            const lastFemale = femaleArr.pop();
-            femaleArr.splice(1, 0, lastFemale);
         }
 
-        state.schedule = newSchedule;
+        state.schedule = rounds;
         render();
     }
 
@@ -539,7 +526,7 @@
     function calculateRanking() {
         const statsMap = {};
         state.players.forEach(p => {
-            statsMap[p.name] = { name: p.name, gender: p.gender, played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, diff: 0 };
+            statsMap[p] = { name: p, played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, diff: 0 };
         });
 
         state.schedule.forEach(round => {
@@ -585,7 +572,7 @@
         const ranking = calculateRanking();
         const entry = {
             date: new Date().toISOString(),
-            players: state.players.map(p => ({...p})),
+            players: [...state.players],
             schedule: JSON.parse(JSON.stringify(state.schedule)),
             ranking: ranking
         };
@@ -599,7 +586,7 @@
         if (index < 0 || index >= historyData.length) return;
         const entry = historyData[index];
         if (!confirm(`Muat riwayat dari ${new Date(entry.date).toLocaleDateString('id-ID')}? Data saat ini akan diganti.`)) return;
-        state.players = entry.players.map(p => ({...p}));
+        state.players = [...entry.players];
         state.schedule = JSON.parse(JSON.stringify(entry.schedule));
         render();
     }
@@ -621,14 +608,13 @@
     function shareRanking() {
         const stats = calculateRanking();
         if (stats.length === 0) { alert('Belum ada data klasemen.'); return; }
-        let text = '🏸 Klasemen Mixed Americano\n\n';
+        let text = '🏸 Klasemen Americano\n\n';
         stats.forEach((p, i) => {
             const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-            const genderIcon = p.gender === 'M' ? '👨' : '👩';
-            text += `${medal} ${i+1}. ${p.name} ${genderIcon} — ${p.won}W/${p.lost}L  (selisih ${p.diff})  poin ${p.pointsFor}\n`;
+            text += `${medal} ${i+1}. ${p.name} — ${p.won}W/${p.lost}L  (selisih ${p.diff})  poin ${p.pointsFor}\n`;
         });
         if (navigator.share) {
-            navigator.share({ title: 'Klasemen Mixed Americano', text }).catch(() => {});
+            navigator.share({ title: 'Klasemen Americano', text }).catch(() => {});
         } else {
             navigator.clipboard.writeText(text).then(() => alert('📋 Klasemen disalin ke clipboard!'));
         }
@@ -672,7 +658,7 @@
     loadState();
     loadDarkMode();
     render();
-    console.log('🏸 Mixed Americano (Badminton Style) siap!');
+    console.log('🏸 Americano (Badminton) siap!');
 </script>
 </body>
 </html>
