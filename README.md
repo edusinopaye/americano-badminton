@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Americano (Badminton)</title>
+    <title>Americano (Badminton Ganda) - Fixed</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background: #f4f7fc; padding: 15px; display: flex; justify-content: center; transition: background 0.3s, color 0.3s; }
@@ -142,7 +142,7 @@
 <body>
 <div class="container" id="app">
     <h1>
-        <span>🏸 Americano (Badminton)</span>
+        <span>🏸 Americano (Badminton Ganda)</span>
         <button class="dark-toggle" onclick="toggleDarkMode()" title="Mode Gelap">🌙</button>
     </h1>
 
@@ -193,8 +193,8 @@
     // ================================================================
     let state = { players: [], schedule: [] };
     let historyData = [];
-    const STORAGE_KEY = 'americano_all_players';
-    const HISTORY_KEY = 'americano_history_all';
+    const STORAGE_KEY = 'americano_all_players_fixed';
+    const HISTORY_KEY = 'americano_history_all_fixed';
 
     // ================================================================
     //  PERSISTENCE
@@ -402,84 +402,88 @@
 
     function clearPlayers() {
         if (state.players.length === 0) return;
-        if (!confirm('Hapus Badminton?')) return;
+        if (!confirm('Hapus Badminton Ganda?')) return;
         state.players = [];
         state.schedule = [];
         render();
     }
 
     // ================================================================
-    //  LOGIC : SCHEDULE (AMERICANO - SETIAP PASANGAN UNIK SEKALI)
+    //  LOGIC : SCHEDULE (FIXED - TIDAK ADA TUMPANG TINDIH)
     // ================================================================
     function generateSchedule() {
         const n = state.players.length;
         if (n < 4) { alert('Minimal 4 pemain.'); return; }
 
         // Buat semua pasangan unik (C(n,2))
-        const pairs = [];
+        const allPairs = [];
         for (let i = 0; i < n; i++) {
             for (let j = i+1; j < n; j++) {
-                pairs.push([state.players[i], state.players[j]]);
+                allPairs.push([state.players[i], state.players[j]]);
             }
         }
 
-        // Acak urutan pasangan agar jadwal lebih variatif
-        for (let i = pairs.length - 1; i > 0; i--) {
+        // Acak urutan pasangan agar jadwal lebih bervariasi
+        for (let i = allPairs.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+            [allPairs[i], allPairs[j]] = [allPairs[j], allPairs[i]];
         }
 
-        // Alokasikan pasangan ke dalam putaran
-        // Setiap putaran, kita ambil pasangan yang tidak memiliki pemain yang sama,
-        // lalu bentuk match dari 2 pasangan (4 pemain).
         const rounds = [];
-        let usedPairs = new Array(pairs.length).fill(false);
+        let used = new Array(allPairs.length).fill(false);
         let roundNumber = 0;
 
-        while (usedPairs.some(v => !v)) {
+        while (used.some(v => !v)) {
             roundNumber++;
-            const roundMatches = [];
+            const matches = [];
             const playersInRound = new Set();
-            const usedInRound = [];
 
-            // Coba ambil pasangan satu per satu
-            for (let i = 0; i < pairs.length; i++) {
-                if (usedPairs[i]) continue;
-                const [p1, p2] = pairs[i];
-                if (playersInRound.has(p1) || playersInRound.has(p2)) continue;
-                // Cari pasangan kedua yang kompatibel
-                for (let j = i+1; j < pairs.length; j++) {
-                    if (usedPairs[j]) continue;
-                    const [q1, q2] = pairs[j];
-                    if (playersInRound.has(q1) || playersInRound.has(q2)) continue;
-                    // Cek tidak ada overlap antara dua pasangan (otomatis karena kita cek set)
-                    // Bentuk match
-                    roundMatches.push({
-                        teamA: [p1, p2],
-                        teamB: [q1, q2],
+            for (let i = 0; i < allPairs.length; i++) {
+                if (used[i]) continue;
+                const pair1 = allPairs[i];
+                // Cek apakah pemain di pair1 sudah dipakai di round ini
+                if (playersInRound.has(pair1[0]) || playersInRound.has(pair1[1])) continue;
+
+                // Cari pasangan kedua yang disjoint dan belum dipakai
+                for (let j = i+1; j < allPairs.length; j++) {
+                    if (used[j]) continue;
+                    const pair2 = allPairs[j];
+                    // Cek apakah pemain di pair2 sudah dipakai di round ini
+                    if (playersInRound.has(pair2[0]) || playersInRound.has(pair2[1])) continue;
+                    // Cek disjoint (tidak ada pemain yang sama)
+                    if (pair1[0] === pair2[0] || pair1[0] === pair2[1] ||
+                        pair1[1] === pair2[0] || pair1[1] === pair2[1]) continue;
+
+                    // Valid: pair1 dan pair2 tidak tumpang tindih
+                    matches.push({
+                        teamA: pair1,
+                        teamB: pair2,
                         scoreA: null,
                         scoreB: null,
-                        id: `r${roundNumber-1}m${roundMatches.length}`,
-                        wave: roundMatches.length + 1
+                        id: `r${roundNumber-1}m${matches.length}`,
+                        wave: matches.length + 1
                     });
-                    usedPairs[i] = true;
-                    usedPairs[j] = true;
-                    playersInRound.add(p1);
-                    playersInRound.add(p2);
-                    playersInRound.add(q1);
-                    playersInRound.add(q2);
-                    usedInRound.push(i, j);
+                    used[i] = true;
+                    used[j] = true;
+                    playersInRound.add(pair1[0]);
+                    playersInRound.add(pair1[1]);
+                    playersInRound.add(pair2[0]);
+                    playersInRound.add(pair2[1]);
+                    // Keluar dari loop j karena sudah menemukan pasangan untuk pair1
                     break;
                 }
             }
 
-            // Kumpulkan pemain yang tidak bermain di putaran ini (istirahat)
+            // Jika tidak ada match yang terbentuk, hentikan (seharusnya tidak terjadi)
+            if (matches.length === 0) break;
+
+            // Kumpulkan pemain yang tidak bermain di putaran ini
             const allPlayers = new Set(state.players);
             const rest = [...allPlayers].filter(p => !playersInRound.has(p));
 
             rounds.push({
                 round: roundNumber,
-                matches: roundMatches,
+                matches: matches,
                 rest: rest
             });
         }
@@ -658,7 +662,7 @@
     loadState();
     loadDarkMode();
     render();
-    console.log('🏸 Americano (Badminton) siap!');
+    console.log('🏸 Americano (Fixed) siap!');
 </script>
 </body>
 </html>
